@@ -17,7 +17,9 @@ from demo_data import build_demo_data
 load_dotenv()
 
 app = FastAPI(title="KPO Ops Intelligence", version="1.0.0")
-
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 URL = os.getenv("SUPABASE_URL")
 KEY = os.getenv("SUPABASE_KEY")
 HEADERS = {
