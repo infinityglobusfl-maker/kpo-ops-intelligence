@@ -31,3 +31,7 @@ if __name__ == "__main__":
 @app.get("/")
 def root():
     return {"message": "KPO Ops Intelligence API is running"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
