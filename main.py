@@ -36,3 +36,22 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+def flag_stuck_reviews():
+    cutoff = (datetime.now() - timedelta(hours=24)).isoformat()
+    tasks = httpx.get(f"{URL}/rest/v1/tasks",
+        headers=HEADERS,
+        params={"status":"eq.with_reviewer",
+                "updated_at":f"lt.{cutoff}",
+                "select":"id,update_token,title,clients(name),staff(name)"})
+    for t in tasks.json():
+        httpx.patch(f"{URL}/rest/v1/tasks",
+            headers={**HEADERS,"Prefer":"return=minimal"},
+            params={"id":f"eq.{t['id']}"},
+            json={"reviewer_flag": True})
+        send_teams_alert(
+            t["staff"]["name"], t["title"],
+            t["clients"]["name"], t["update_token"])
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(flag_stuck_reviews, 'interval', hours=1)
+scheduler.start()
